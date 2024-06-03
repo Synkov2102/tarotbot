@@ -1,0 +1,4 @@
+services:
+  tarotbot:
+    image: tarotbot
+    env_file: .env
