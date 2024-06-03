@@ -4,8 +4,9 @@ import (
 	"context"
 	"log"
 	"math/rand"
-	"taro-bot/gigachat"
-	"taro-bot/tarot"
+
+	"github.com/Synkov2102/tarotbot/gigachat"
+	"github.com/Synkov2102/tarotbot/tarot"
 
 	"time"
 

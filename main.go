@@ -4,9 +4,10 @@ import (
 	"context"
 	"log"
 	"os"
-	"taro-bot/gigachat"
-	"taro-bot/redisConnector"
-	"taro-bot/telegram"
+
+	"github.com/Synkov2102/tarotbot/gigachat"
+	"github.com/Synkov2102/tarotbot/redisConnector"
+	"github.com/Synkov2102/tarotbot/telegram"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/joho/godotenv"

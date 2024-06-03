@@ -6,7 +6,8 @@ import (
 	"io"
 	"net/http"
 	"strings"
-	"taro-bot/certs"
+
+	"github.com/Synkov2102/tarotbot/certs"
 )
 
 func Generate(cards string, question string, token string) (string, error) {

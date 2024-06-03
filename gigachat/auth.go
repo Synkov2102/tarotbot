@@ -8,8 +8,9 @@ import (
 	"net/url"
 	"os"
 	"strings"
-	"taro-bot/certs"
 	"time"
+
+	"github.com/Synkov2102/tarotbot/certs"
 
 	"github.com/google/uuid"
 )
