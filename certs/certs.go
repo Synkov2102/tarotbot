@@ -3,7 +3,6 @@ package certs
 import (
 	"crypto/tls"
 	"crypto/x509"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -11,14 +10,8 @@ import (
 )
 
 func GetClientWithCerts() *http.Client {
-	certsDir := filepath.Base(os.Getenv("ROOT_LOCATION") + "/files")
-	ex, err := os.Executable()
-	if err != nil {
-		panic(err)
-	}
-	exPath := filepath.Dir(ex)
-	fmt.Println("************************")
-	fmt.Println(exPath)
+	certsDir := filepath.Base(os.Getenv("CERTS_LOCATION"))
+
 	// Create a CA certificate pool and add certs from certsDir
 	caCertPool := x509.NewCertPool()
 	caCertFiles, err := os.ReadDir(certsDir)

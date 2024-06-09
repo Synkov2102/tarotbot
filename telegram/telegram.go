@@ -4,8 +4,10 @@ import (
 	"context"
 	"log"
 	"math/rand"
+	"strings"
 
 	"github.com/Synkov2102/tarotbot/gigachat"
+	"github.com/Synkov2102/tarotbot/postgres"
 	"github.com/Synkov2102/tarotbot/tarot"
 
 	"time"
@@ -22,20 +24,53 @@ func HandleUpdate(ctx context.Context, update tgbotapi.Update, bot *tgbotapi.Bot
 		result, err := redisClient.Get(ctx, "user_state-"+update.Message.From.UserName).Result()
 
 		if result == "tarot_command-1" {
-			msgText := Make3CardSpread(update, bot, gigachatToken, update.Message.Text)
+			// Создаем колоду Таро
 
-			// Отправляем полученное сообщение
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, msgText)
-			_, err = bot.Send(msg)
+			deck, err := postgres.GetTarotCards()
 			if err != nil {
-				log.Println(err)
+				log.Fatal(err)
+			}
+
+			var randomCards []tarot.TarotCard
+			for i := 0; i < 3; i++ {
+				randomIndex := rand.Intn(len(deck))
+				randomCards = append(randomCards, deck[randomIndex])
+			}
+
+			var cards string
+			for _, card := range randomCards {
+				cards += card.Name + " (" + card.Suit + ")"
+			}
+
+			msgText := Make3CardSpread(update, bot, gigachatToken, update.Message.Text, cards)
+
+			paragraphs := strings.Split(msgText, "\n\n") // Делим строку двумя переносами строки
+
+			for i, card := range randomCards {
+				msg := tgbotapi.NewPhoto(update.Message.Chat.ID, card.ImgURL)
+				msg.Caption = paragraphs[i]
+
+				_, err := bot.Send(msg)
+				if err != nil {
+					log.Panic(err)
+				}
+			}
+
+			if len(paragraphs) > 3 {
+				// Отправляем полученное сообщение
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, paragraphs[3])
+				_, err = bot.Send(msg)
+				if err != nil {
+					log.Println(err)
+				}
 			}
 
 			// Сбрасываем состояние пользователя
-			err := redisClient.Set(ctx, "user_state-"+update.Message.From.UserName, "start", 0).Err()
+			err = redisClient.Set(ctx, "user_state-"+update.Message.From.UserName, "start", 0).Err()
 			if err != nil {
 				log.Fatalf("Ошибка записи в Redis: %v", err)
 			}
+
 		} else {
 			inlineKeyboard := tgbotapi.NewInlineKeyboardMarkup(
 				tgbotapi.NewInlineKeyboardRow(
@@ -72,24 +107,10 @@ func HandleUpdate(ctx context.Context, update tgbotapi.Update, bot *tgbotapi.Bot
 	}
 }
 
-func Make3CardSpread(update tgbotapi.Update, bot *tgbotapi.BotAPI, gigachatToken gigachat.Token, question string) string {
-	// Создаем колоду Таро
-	deck := tarot.CreateTarotDeck()
-	var randomCards []tarot.TarotCard
-	for i := 0; i < 3; i++ {
-		randomIndex := rand.Intn(len(deck))
-		randomCards = append(randomCards, deck[randomIndex])
-	}
-
-	var cards string
-	for _, card := range randomCards {
-		cards += card.Name + " (" + card.Suit + ")"
-	}
-
+func Make3CardSpread(update tgbotapi.Update, bot *tgbotapi.BotAPI, gigachatToken gigachat.Token, question string, cards string) string {
 	currentTime := time.Now()
-	compareTime := currentTime.Add(-30 * time.Minute)
 
-	if gigachatToken.Created.Before(compareTime) {
+	if gigachatToken.Created.Before(currentTime) {
 		var err error
 		gigachatToken, err = gigachat.GetToken()
 		if err != nil {

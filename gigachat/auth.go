@@ -61,7 +61,10 @@ func GetToken() (Token, error) {
 	}
 
 	// Преобразуем байты в строку
-	bodyString := string(bodyBytes)
+	bodyString := strings.TrimSpace(string(bodyBytes))
+
+	// Печать данных перед декодированием
+	fmt.Println("Received JSON:", bodyString)
 
 	// Декодируем строку в структуру или карту, содержащую access_token
 	var responseStruct struct {
@@ -75,8 +78,11 @@ func GetToken() (Token, error) {
 		fmt.Println(err)
 		return Token{}, err
 	}
+
+	expiresAt := time.Unix(responseStruct.ExpiresAt/1000, 0)
+
 	// Получаем access_token
-	return Token{Value: responseStruct.AccessToken, Created: time.Unix(responseStruct.ExpiresAt, 0)}, nil
+	return Token{Value: responseStruct.AccessToken, Created: expiresAt}, nil
 }
 
 func formatData(data map[string]string) string {

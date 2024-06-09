@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Synkov2102/tarotbot/gigachat"
+	"github.com/Synkov2102/tarotbot/postgres"
 	"github.com/Synkov2102/tarotbot/redisConnector"
 	"github.com/Synkov2102/tarotbot/telegram"
 
@@ -37,6 +38,9 @@ func main() {
 
 	u := tgbotapi.NewUpdate(0)
 	u.Timeout = 60
+
+	postgres.InitDB()
+	defer postgres.CloseDB()
 
 	updates := bot.GetUpdatesChan(u)
 
